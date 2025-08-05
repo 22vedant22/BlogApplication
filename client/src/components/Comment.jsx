@@ -51,7 +51,7 @@ const Comment = ({ props }) => {
     return (
         <div>
             <h4 className='flex item-center gap-2 text-2xl font-bold'>
-                <FaCommentDots className='text-violet-500' />Comment </h4>
+                <FaCommentDots className='text-violet-500' />Comments </h4>
             {user && user.isLoggedIN
                 ?
                 <Form {...form}>
