@@ -60,12 +60,12 @@ const SignUp = () => {
   return (
     <div className='flex justify-center items-center h-screen w-screen'>
       <Card className='w-[400px] p-5'>
-        <h1 className='text2x1 font-bold text-center mb-5'>Create Your Account</h1>
+        <h1 className='text-2x1 font-bold text-center mb-5'>Create Your Account</h1>
 
         <div className=''>
           <GoogleLogin />
           <div className='border my-5 flex justify-center item-center'>
-            <span className='abdolute bg-white text-5m'>Or</span>
+            <span className='absolute bg-white text-sm'>Or</span>
           </div>
         </div>
 

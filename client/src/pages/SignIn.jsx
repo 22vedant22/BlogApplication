@@ -70,7 +70,7 @@ const dispath = useDispatch()
           <div className=''>
           <GoogleLogin />
           <div className='border my-5 flex justify-center item-center'>
-            <span className='abdolute bg-white text-5m'>Or</span>
+            <span className='absolute bg-white text-sm'>Or</span>
           </div>
         </div>
 

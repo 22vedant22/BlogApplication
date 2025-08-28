@@ -80,7 +80,7 @@ import 'ckeditor5/ckeditor5.css';
  */
 const LICENSE_KEY = 'GPL'; // or <YOUR_LICENSE_KEY>.
 
-export default function Editor({props}) {
+export default function Editor({ props }) {
 	const editorContainerRef = useRef(null);
 	const editorRef = useRef(null);
 	const editorWordCountRef = useRef(null);
@@ -289,7 +289,7 @@ export default function Editor({props}) {
 						'resizeImage'
 					]
 				},
-				initialData: props?.initialData || '' ,
+				initialData: props?.initialData || '',
 				licenseKey: LICENSE_KEY,
 				link: {
 					addTargetToExternalLinks: true,
@@ -339,17 +339,21 @@ export default function Editor({props}) {
 					<div ref={editorRef}>
 						{editorConfig && (
 							<CKEditor
-                            onChange={props.onChange}
+								editor={ClassicEditor}
+								data={props.initialData} // live value from react-hook-form
+								config={editorConfig}    // ✅ keep all your toolbar/plugins/licenseKey
+								onChange={props.onChange}
 								onReady={editor => {
-									const wordCount = editor.plugins.get('WordCount');
-									editorWordCountRef.current.appendChild(wordCount.wordCountContainer);
+									const wordCountPlugin = editor.plugins.get('WordCount');
+									if (wordCountPlugin && editorWordCountRef.current) {
+										editorWordCountRef.current.appendChild(wordCountPlugin.wordCountContainer);
+									}
 								}}
 								onAfterDestroy={() => {
 									Array.from(editorWordCountRef.current.children).forEach(child => child.remove());
 								}}
-								editor={ClassicEditor}
-								config={editorConfig}
 							/>
+
 						)}
 					</div>
 				</div>

@@ -12,8 +12,8 @@ import { setUser } from '@/redux/user/user.slice';
 const GoogleLogin = () => {
   const dispath = useDispatch()
   const navigate = useNavigate()
+  
   const handleLogin = async () => {
-
     try {
       const googleResponse = await signInWithPopup(auth, provider)
       const user = googleResponse.user

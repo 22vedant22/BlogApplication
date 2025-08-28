@@ -23,6 +23,7 @@ import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { RouteBlog } from '@/helpers/RouteName'
 import Loading from '@/components/Loading'
+import { toast } from 'react-toastify'
 
 
 const AddBlog = () => {
@@ -36,9 +37,10 @@ const AddBlog = () => {
 
     const [filePreview, setPreview] = useState()
     const [file, setFile] = useState()
+    const [generating, setGenerating] = useState(false);
 
     const formSchema = z.object({
-        
+
         category: z.string(),
         title: z.string().min(3, 'Title must be at least 3 character long'),
         slug: z.string().min(3, 'slug must be at least 3 character long'),
@@ -48,7 +50,7 @@ const AddBlog = () => {
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            
+
             category: '',
             title: '',
             slug: '',
@@ -57,10 +59,10 @@ const AddBlog = () => {
         },
     })
 
-    const handleEditorData = (event, editor) => {
-        const data = editor.getData()
-        form.setValue('blogContent', data)
-    }
+    // const handleEditorData = (event, editor) => {
+    //     const data = editor.getData()
+    //     form.setValue('blogContent', data.content)
+    // }
 
     const blogTitle = form.watch('title')
 
@@ -72,13 +74,44 @@ const AddBlog = () => {
         }
     }, [blogTitle])
 
+    const generateContent = async () => {
+        try {
+            const title = form.watch('title');
+            if (!title) {
+                return toast.error("Please enter a title first");
+            }
+            setGenerating(true)
+            const response = await fetch(`${getEnv('VITE_API_BASE_URL')}/blog/generate-content`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ prompt: title })
+            });
+
+            const data = await response.json();
+            console.log(data);
+            if (!response.ok) {
+                return toast.error(data.message);
+            }
+
+            form.setValue('blogContent', data.content);
+        } catch (error) {
+            toast.error(error.message || "Failed to generate content");
+        } finally {
+            setGenerating(false);
+        }
+    };
+
+
     async function onSubmit(values) {
         try {
             const newValues = { ...values, author: user.user._id }
-            // console.log(newValues)
+
             if (!file) {
                 showToast('error', 'Feature image required')
             }
+            setGenerating(true)
             const formData = new FormData()
             formData.append('file', file)
             formData.append('data', JSON.stringify(newValues))
@@ -101,6 +134,8 @@ const AddBlog = () => {
 
         } catch (error) {
             showToast('error', error.message)
+        } finally {
+            setGenerating(false);
         }
     }
 
@@ -110,12 +145,12 @@ const AddBlog = () => {
         setFile(file)
         setPreview(preview)
     }
-if(loading) return <Loading/>
+    if (loading) return <Loading />
     return (
         <div>
             <Card className='pt-5 '>
                 <CardContent>
-                    <h1 className='text-2xl font-bold mb-4'>Edit Blog</h1>
+                    <h1 className='text-2xl font-bold mb-4'>Add Blog</h1>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)}>
                             <div className='mb-3'>
@@ -134,7 +169,6 @@ if(loading) return <Loading/>
                                                         {categoryData && categoryData.category.length > 0 && categoryData.category.map(category =>
                                                             <SelectItem key={category._id} value={category._id}>{category.name}</SelectItem>
                                                         )}
-
 
                                                     </SelectContent>
                                                 </Select>
@@ -178,7 +212,6 @@ if(loading) return <Loading/>
                                 <span className='mb-2 block'>Featured Image</span>
                                 <Dropzone onDrop={acceptedFiles => handleFileSelection(acceptedFiles)}>
                                     {({ getRootProps, getInputProps }) => (
-
                                         <div {...getRootProps()}>
                                             <input {...getInputProps()} />
                                             <div className='flex justify-center items-center w-36 h-28 border-2 border-dashboard rounded'>
@@ -190,28 +223,54 @@ if(loading) return <Loading/>
                                 <div>
                                     <FormField
                                         control={form.control}
-                                        name="BlogContent"
+                                        name="blogContent"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Blog Content</FormLabel>
+                                                <div className='p-2 justify-center items-center mb-2'>
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        onClick={() => generateContent(form.watch('title'))}
+                                                    >
+                                                        {generating && <Loading className="ml-2" />
+                                                            ?
+                                                            "Generating..."
+                                                            :
+                                                            "Generate Blog Description"
+
+                                                        }
+                                                    </Button>
+                                                </div>
                                                 <FormControl>
-                                                    <Editor props={{ initialData: '', onChange: handleEditorData }} />
+                                                    <Editor
+                                                        props={{
+                                                            initialData: field.value,
+                                                            onChange: (event, editor) => {
+                                                                const data = editor.getData();
+                                                                field.onChange(data);
+                                                            }
+                                                        }}
+                                                    />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
-
                                 </div>
                             </div>
-                            <Button type="submit" className="w-full">Submit</Button>
+                            <Button type="submit" className="w-full">
+                                {generating && <Loading className="ml-2" />
+                                    ?
+                                    "Submitting..."
+                                    :
+                                    "Submit"
+                                }
+                            </Button>
                         </form>
                     </Form>
                 </CardContent>
-
             </Card>
         </div>
-
     )
 }
 

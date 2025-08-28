@@ -3,6 +3,7 @@ import Blog from "../models/blog.model.js"
 import cloudinary from "../config/cloudinary.js"
 import { encode } from "entities"
 import Category from "../models/category.modle.js"
+import main from "../config/gemini.js"
 export const addBlog = async (req, res, next) => {
     try {
         const data = JSON.parse(req.body.data)
@@ -180,6 +181,19 @@ export const getAllBlogs = async (req, res, next) => {
         const blog = await Blog.find().populate('author', 'name avatar role').populate('category', 'name slug').sort({ createdAt: -1 }).lean().exec()
         res.status(200).json({
             blog
+        })
+    } catch (error) {
+        next(handleError(500, error.message))
+    }
+}
+
+export const generateContent = async (req, res, next) => {
+    try {
+        const { prompt } = req.body
+        const content = await main(prompt + 'Generate a blog content for this topic in simple text format')
+        res.status(200).json({
+            success: true,
+            content
         })
     } catch (error) {
         next(handleError(500, error.message))
